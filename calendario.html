@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Gestão Rural - Vacinas</title>
+<style>
+body { font-family: Arial, sans-serif; margin:0; padding:0; }
+nav ul { list-style:none; display:flex; background:#0077b6; padding:10px; margin:0; }
+nav ul li { margin-right:10px; }
+nav ul li a { color:white; text-decoration:none; font-weight:bold; }
+nav ul li a:hover { text-decoration:underline; }
+.conteudo { max-width:1200px; margin:20px auto; }
+table { width:100%; border-collapse:collapse; margin-bottom:20px; }
+th, td { border:1px solid #ccc; padding:8px; text-align:left; }
+th { background:#0077b6; color:white; }
+.vencida { background:#ffcccc; }
+.proxima { background:#fff3cd; }
+h1 { margin-bottom:20px; }
+button { padding:8px 16px; background:#0077b6; color:white; border:none; border-radius:4px; cursor:pointer; }
+button:hover { background:#023e8a; }
+
+/* Modal Styles */
+.modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color: rgba(0,0,0,0.5); }
+.modal-content { background:#caf0f8; margin:10% auto; padding:20px; border-radius:8px; width:400px; position:relative; }
+.close { color:#333; position:absolute; top:10px; right:15px; font-size:24px; font-weight:bold; cursor:pointer; }
+form label { display:block; margin:10px 0 5px; }
+form input, form select { padding:5px; width:100%; }
+form button { margin-top:10px; width:48%; }
+form button:first-of-type { margin-right:4%; }
+
+/* Filtros */
+.filtros { margin-bottom:20px; }
+.filtros label { margin-right:5px; }
+.filtros select { margin-right:20px; padding:5px; }
+</style>
+</head>
+<body>
+
+<nav>
+<ul>
+<li><a href="index.html">🏠 Home</a></li>
+<li><a href="propriedades.html">🏡 Propriedades</a></li>
+<li><a href="animais.html">🐄 Animais</a></li>
+<li><a href="nascimento.html">🐮 Nascimento</a></li>
+<li><a href="calendario.html">📅 Vacinas</a></li>
+<li><a href="historico.html">📜 Histórico</a></li>
+</ul>
+</nav>
+
+<section class="conteudo">
+<h1>Vacinas</h1>
+
+<!-- Filtros -->
+<div class="filtros">
+<label>Propriedade:</label>
+<select id="filtroPropriedade"><option value="">Todas</option></select>
+
+<label>Vacina:</label>
+<select id="filtroVacina">
+<option value="">Todas</option>
+<option value="Raiva">Raiva</option>
+<option value="Ivomec">Ivomec</option>
+<option value="Vermífugo">Vermífugo</option>
+<option value="Outros">Outros</option>
+</select>
+
+<label>Status:</label>
+<select id="filtroStatus">
+<option value="">Todos</option>
+<option value="Válida">Válida</option>
+<option value="Próxima de vencer">Próxima de vencer</option>
+<option value="Vencida">Vencida</option>
+</select>
+
+<button id="abrirModal">Cadastrar Vacina</button>
+</div>
+
+<table id="tabelaVacinas">
+<thead>
+<tr>
+<th>Vacina</th>
+<th>Marca</th>
+<th>Propriedade</th>
+<th>Brinco</th>
+<th>Data Aplicação</th>
+<th>Data Vencimento</th>
+<th>Status</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</section>
+
+<!-- Modal -->
+<div id="modalVacina" class="modal">
+<div class="modal-content">
+<span class="close">&times;</span>
+<h2>Cadastro de Vacina</h2>
+<form id="formVacina">
+<label>Vacina:</label>
+<select id="vacinaTipo" required>
+<option value="">Selecione</option>
+<option value="Raiva">Raiva</option>
+<option value="Ivomec">Ivomec</option>
+<option value="Vermífugo">Vermífugo</option>
+<option value="Outros">Outros</option>
+</select>
+
+<label>Marca:</label>
+<input type="text" id="vacinaMarca" placeholder="Marca da vacina" required>
+
+<label>Propriedade:</label>
+<select id="vacinaPropriedade" required></select>
+
+<label>Brinco (opcional):</label>
+<select id="vacinaBrinco">
+<option value="">Todo rebanho</option>
+</select>
+
+<label>Data de aplicação:</label>
+<input type="date" id="dataAplicacao" required>
+
+<label>Validade (meses):</label>
+<input type="number" id="validadeMeses" min="1" required>
+
+<button type="submit">Cadastrar</button>
+<button type="button" id="cancelarModal">Cancelar</button>
+</form>
+</div>
+</div>
+
+<script>
+// Inicializar LocalStorage
+if(!localStorage.getItem('propriedades')) localStorage.setItem('propriedades', JSON.stringify([]));
+if(!localStorage.getItem('animais')) localStorage.setItem('animais', JSON.stringify([]));
+if(!localStorage.getItem('vacinas')) localStorage.setItem('vacinas', JSON.stringify([]));
+
+// Formatar data DD Mês AAAA
+function formatarData(dataStr){
+    const data = new Date(dataStr);
+    const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+                   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+    return `${data.getDate()} ${meses[data.getMonth()]} ${data.getFullYear()}`;
+}
+
+// Atualizar selects modal
+function atualizarSelects(){
+    const propriedades = JSON.parse(localStorage.getItem('propriedades'));
+    const selectProp = document.getElementById('vacinaPropriedade');
+    selectProp.innerHTML = '<option value="">Selecione</option>';
+    propriedades.forEach(p => selectProp.innerHTML += `<option value="${p.nome}">${p.nome}</option>`);
+
+    const animais = JSON.parse(localStorage.getItem('animais'));
+    const selectBrinco = document.getElementById('vacinaBrinco');
+    selectBrinco.innerHTML = '<option value="">Todo rebanho</option>';
+    animais.forEach(a => selectBrinco.innerHTML += `<option value="${a.brinco}">${a.brinco}</option>`);
+}
+
+// Atualizar filtros
+function atualizarFiltros(){
+    const select = document.getElementById('filtroPropriedade');
+    const propriedades = JSON.parse(localStorage.getItem('propriedades'));
+    select.innerHTML = '<option value="">Todas</option>';
+    propriedades.forEach(p => select.innerHTML += `<option value="${p.nome}">${p.nome}</option>`);
+}
+
+// Modal
+const modal = document.getElementById('modalVacina');
+const abrirBtn = document.getElementById('abrirModal');
+const fecharBtn = document.querySelector('.close');
+const cancelarBtn = document.getElementById('cancelarModal');
+
+abrirBtn.onclick = ()=> modal.style.display='block';
+fecharBtn.onclick = ()=> modal.style.display='none';
+cancelarBtn.onclick = ()=> modal.style.display='none';
+window.onclick = (e)=> { if(e.target==modal) modal.style.display='none'; };
+
+// Cadastrar vacina
+document.getElementById('formVacina').addEventListener('submit', function(e){
+    e.preventDefault();
+    const tipo = document.getElementById('vacinaTipo').value;
+    const marca = document.getElementById('vacinaMarca').value;
+    const propriedade = document.getElementById('vacinaPropriedade').value;
+    const brinco = document.getElementById('vacinaBrinco').value;
+    const dataAplicacao = document.getElementById('dataAplicacao').value;
+    const validadeMeses = parseInt(document.getElementById('validadeMeses').value);
+
+    const dataVencimento = new Date(dataAplicacao);
+    dataVencimento.setMonth(dataVencimento.getMonth() + validadeMeses);
+
+    const vacinas = JSON.parse(localStorage.getItem('vacinas'));
+    vacinas.push({tipo, marca, propriedade, brinco, dataAplicacao, dataVencimento: dataVencimento.toISOString()});
+    localStorage.setItem('vacinas', JSON.stringify(vacinas));
+    filtrarTabela();
+    this.reset();
+    modal.style.display='none';
+});
+
+// Atualizar tabela com filtros
+function filtrarTabela(){
+    const filtroProp = document.getElementById('filtroPropriedade').value;
+    const filtroVac = document.getElementById('filtroVacina').value;
+    const filtroStat = document.getElementById('filtroStatus').value;
+    const tabela = document.querySelector('#tabelaVacinas tbody');
+    const vacinas = JSON.parse(localStorage.getItem('vacinas'));
+    const hoje = new Date();
+    tabela.innerHTML = '';
+
+    vacinas.forEach((v,index)=>{
+        const venc = new Date(v.dataVencimento);
+        let status='', classe='';
+        if(venc < hoje){ status='Vencida'; classe='vencida'; }
+        else if((venc-hoje)/(1000*60*60*24)<=30){ status='Próxima de vencer'; classe='proxima'; }
+        else{ status='Válida'; }
+
+        if((!filtroProp || v.propriedade===filtroProp) &&
+           (!filtroVac || v.tipo===filtroVac) &&
+           (!filtroStat || status===filtroStat)) {
+            tabela.innerHTML += `<tr class="${classe}">
+                <td>${v.tipo}</td>
+                <td>${v.marca}</td>
+                <td>${v.propriedade}</td>
+                <td>${v.brinco || 'Todo rebanho'}</td>
+                <td>${formatarData(v.dataAplicacao)}</td>
+                <td>${formatarData(v.dataVencimento)}</td>
+                <td>${status}</td>
+                <td>
+                    <button onclick="editarVacina(${index})">Editar</button>
+                    <button onclick="excluirVacina(${index})">Excluir</button>
+                </td>
+            </tr>`;
+        }
+    });
+}
+
+// Excluir vacina
+function excluirVacina(index){
+    if(confirm('Deseja realmente excluir esta vacina?')){
+        const vacinas = JSON.parse(localStorage.getItem('vacinas'));
+        vacinas.splice(index,1);
+        localStorage.setItem('vacinas', JSON.stringify(vacinas));
+        filtrarTabela();
+    }
+}
+
+// Editar vacina
+function editarVacina(index){
+    const vacinas = JSON.parse(localStorage.getItem('vacinas'));
+    const v = vacinas[index];
+    document.getElementById('vacinaTipo').value = v.tipo;
+    document.getElementById('vacinaMarca').value = v.marca;
+    document.getElementById('vacinaPropriedade').value = v.propriedade;
+    document.getElementById('vacinaBrinco').value = v.brinco || '';
+    document.getElementById('dataAplicacao').value = v.dataAplicacao;
+    const validadeMeses = Math.round((new Date(v.dataVencimento)-new Date(v.dataAplicacao))/(1000*60*60*24*30));
+    document.getElementById('validadeMeses').value = validadeMeses;
+
+    vacinas.splice(index,1);
+    localStorage.setItem('vacinas', JSON.stringify(vacinas));
+    filtrarTabela();
+}
+
+// Filtros event listeners
+document.getElementById('filtroPropriedade').addEventListener('change', filtrarTabela);
+document.getElementById('filtroVacina').addEventListener('change', filtrarTabela);
+document.getElementById('filtroStatus').addEventListener('change', filtrarTabela);
+
+// Inicialização
+window.addEventListener('DOMContentLoaded', ()=>{
+    atualizarSelects();
+    atualizarFiltros();
+    filtrarTabela();
+});
+</script>
+
+</body>
+</html>

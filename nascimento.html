@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Gestão Rural - Nascimento</title>
+<style>
+body { font-family: Arial, sans-serif; margin:0; padding:0; }
+nav ul { list-style:none; display:flex; background:#0077b6; padding:10px; margin:0; }
+nav ul li { margin-right:10px; }
+nav ul li a { color:white; text-decoration:none; font-weight:bold; }
+nav ul li a:hover { text-decoration:underline; }
+.conteudo { max-width:900px; margin:20px auto; }
+table { width:100%; border-collapse:collapse; margin-bottom:20px; }
+th, td { border:1px solid #ccc; padding:8px; text-align:left; }
+th { background:#0077b6; color:white; }
+button { margin-right:5px; }
+form input, form select, form button { margin:5px 0; padding:5px; width:100%; box-sizing:border-box; }
+
+/* Filtros */
+.filtros input, .filtros select { margin:5px; padding:5px; width:auto; }
+</style>
+</head>
+<body>
+
+<nav>
+<ul>
+<li><a href="index.html">🏠 Home</a></li>
+<li><a href="propriedades.html">🏡 Propriedades</a></li>
+<li><a href="animais.html">🐄 Animais</a></li>
+<li><a href="nascimento.html">🐮 Nascimento</a></li>
+<li><a href="calendario.html">📅 Vacinas</a></li>
+<li><a href="historico.html">📜 Histórico</a></li>
+</ul>
+</nav>
+
+<section class="conteudo">
+<h2>Nascimentos Registrados</h2>
+
+<!-- Filtros -->
+<div class="filtros">
+<input type="text" id="filtroBrinco" placeholder="Brinco do bezerro">
+<select id="filtroMae">
+<option value="">Brinco da mãe</option>
+</select>
+<select id="filtroSexo">
+<option value="">Sexo</option>
+<option value="Macho">Macho</option>
+<option value="Fêmea">Fêmea</option>
+</select>
+<select id="filtroPropriedade">
+<option value="">Propriedade</option>
+</select>
+<input type="date" id="dataMin" placeholder="Data mínima">
+<input type="date" id="dataMax" placeholder="Data máxima">
+<button id="limparFiltros">Limpar Filtros</button>
+</div>
+
+<table id="tabelaNascimento">
+<thead>
+<tr>
+<th>Brinco do bezerro</th>
+<th>Brinco da mãe</th>
+<th>Data Nascimento</th>
+<th>Sexo</th>
+<th>Propriedade</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<h3>Adicionar / Editar Nascimento</h3>
+<form id="formNascimento">
+<input type="hidden" id="indexEdit">
+<input type="number" id="brincoBezerro" placeholder="Brinco do bezerro">
+<select id="brincoMae" required>
+<option value="">Selecione Brinco da Mãe</option>
+</select>
+<input type="date" id="dataNascimento" required>
+<select id="sexo" required>
+<option value="">Selecione Sexo</option>
+<option value="Macho">Macho</option>
+<option value="Fêmea">Fêmea</option>
+</select>
+<select id="propriedade" required>
+<option value="">Selecione Propriedade</option>
+</select>
+<button type="submit">Salvar</button>
+<button type="button" id="cancelEdit">Cancelar</button>
+</form>
+
+</section>
+
+<script>
+// Inicializar LocalStorage
+if(!localStorage.getItem('nascimentos')) localStorage.setItem('nascimentos', JSON.stringify([]));
+if(!localStorage.getItem('propriedades')) localStorage.setItem('propriedades', JSON.stringify([]));
+if(!localStorage.getItem('animais')) localStorage.setItem('animais', JSON.stringify([]));
+
+const tabela = document.querySelector('#tabelaNascimento tbody');
+const form = document.getElementById('formNascimento');
+const indexEdit = document.getElementById('indexEdit');
+
+const propriedadeSelect = document.getElementById('propriedade');
+const filtroPropriedade = document.getElementById('filtroPropriedade');
+
+const brincoMaeSelect = document.getElementById('brincoMae');
+const filtroMae = document.getElementById('filtroMae');
+
+const filtroBrinco = document.getElementById('filtroBrinco');
+const filtroSexo = document.getElementById('filtroSexo');
+const dataMin = document.getElementById('dataMin');
+const dataMax = document.getElementById('dataMax');
+const limparFiltros = document.getElementById('limparFiltros');
+
+// Atualiza select de propriedades
+function atualizarPropriedades(){
+    const props = JSON.parse(localStorage.getItem('propriedades'));
+    propriedadeSelect.innerHTML = '<option value="">Selecione Propriedade</option>';
+    filtroPropriedade.innerHTML = '<option value="">Propriedade</option>';
+    props.forEach(p=>{
+        propriedadeSelect.innerHTML += `<option value="${p.nome}">${p.nome}</option>`;
+        filtroPropriedade.innerHTML += `<option value="${p.nome}">${p.nome}</option>`;
+    });
+}
+
+// Atualiza select de mães (animais)
+function atualizarMaes(){
+    const animais = JSON.parse(localStorage.getItem('animais'));
+    brincoMaeSelect.innerHTML = '<option value="">Selecione Brinco da Mãe</option>';
+    filtroMae.innerHTML = '<option value="">Brinco da mãe</option>';
+    animais.forEach(a=>{
+        brincoMaeSelect.innerHTML += `<option value="${a.brinco}">${a.brinco}</option>`;
+        filtroMae.innerHTML += `<option value="${a.brinco}">${a.brinco}</option>`;
+    });
+}
+
+// Atualiza tabela aplicando filtros
+function atualizarTabela(){
+    const dados = JSON.parse(localStorage.getItem('nascimentos'));
+    tabela.innerHTML = '';
+    dados.forEach((n,i)=>{
+        // Aplicar filtros
+        if(filtroBrinco.value && (!n.brincoBezerro || !n.brincoBezerro.toString().includes(filtroBrinco.value))) return;
+        if(filtroMae.value && n.brincoMae !== filtroMae.value) return;
+        if(filtroSexo.value && n.sexo !== filtroSexo.value) return;
+        if(filtroPropriedade.value && n.propriedade !== filtroPropriedade.value) return;
+        if(dataMin.value && new Date(n.dataNascimento) < new Date(dataMin.value)) return;
+        if(dataMax.value && new Date(n.dataNascimento) > new Date(dataMax.value)) return;
+
+        tabela.innerHTML += `<tr>
+            <td>${n.brincoBezerro || ''}</td>
+            <td>${n.brincoMae}</td>
+            <td>${n.dataNascimento}</td>
+            <td>${n.sexo}</td>
+            <td>${n.propriedade}</td>
+            <td>
+                <button onclick="editar(${i})">Editar</button>
+                <button onclick="excluir(${i})">Excluir</button>
+            </td>
+        </tr>`;
+    });
+}
+
+// Salvar nascimento
+form.addEventListener('submit', e=>{
+    e.preventDefault();
+    const dados = JSON.parse(localStorage.getItem('nascimentos'));
+    const novoNascimento = {
+        brincoBezerro: document.getElementById('brincoBezerro').value ? parseInt(document.getElementById('brincoBezerro').value) : null,
+        brincoMae: brincoMaeSelect.value,
+        dataNascimento: document.getElementById('dataNascimento').value,
+        sexo: document.getElementById('sexo').value,
+        propriedade: propriedadeSelect.value
+    };
+
+    if(indexEdit.value===''){
+        dados.push(novoNascimento);
+    } else {
+        dados[parseInt(indexEdit.value)] = novoNascimento;
+        indexEdit.value='';
+    }
+
+    localStorage.setItem('nascimentos', JSON.stringify(dados));
+    form.reset();
+    atualizarTabela();
+});
+
+// Editar
+function editar(i){
+    const dados = JSON.parse(localStorage.getItem('nascimentos'));
+    const n = dados[i];
+    document.getElementById('brincoBezerro').value = n.brincoBezerro || '';
+    brincoMaeSelect.value = n.brincoMae;
+    document.getElementById('dataNascimento').value = n.dataNascimento;
+    document.getElementById('sexo').value = n.sexo;
+    propriedadeSelect.value = n.propriedade;
+    indexEdit.value = i;
+}
+
+// Excluir
+function excluir(i){
+    const dados = JSON.parse(localStorage.getItem('nascimentos'));
+    if(confirm('Deseja realmente excluir este nascimento?')){
+        dados.splice(i,1);
+        localStorage.setItem('nascimentos', JSON.stringify(dados));
+        atualizarTabela();
+    }
+}
+
+// Filtros eventos
+[filtroBrinco, filtroMae, filtroSexo, filtroPropriedade, dataMin, dataMax].forEach(el=>{
+    el.addEventListener('input', atualizarTabela);
+});
+
+limparFiltros.addEventListener('click', ()=>{
+    filtroBrinco.value=''; filtroMae.value='';
+    filtroSexo.value=''; filtroPropriedade.value='';
+    dataMin.value=''; dataMax.value='';
+    atualizarTabela();
+});
+
+document.getElementById('cancelEdit').addEventListener('click', ()=>{
+    form.reset();
+    indexEdit.value='';
+});
+
+window.addEventListener('DOMContentLoaded', ()=>{
+    atualizarPropriedades();
+    atualizarMaes();
+    atualizarTabela();
+});
+</script>
+
+</body>
+</html>

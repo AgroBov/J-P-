@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Gestão Rural - Propriedades</title>
+<style>
+body { font-family: Arial, sans-serif; margin:0; padding:0; }
+nav ul { list-style:none; display:flex; background:#0077b6; padding:10px; margin:0; }
+nav ul li { margin-right:10px; }
+nav ul li a { color:white; text-decoration:none; font-weight:bold; }
+nav ul li a:hover { text-decoration:underline; }
+.conteudo { max-width:900px; margin:20px auto; }
+table { width:100%; border-collapse:collapse; margin-bottom:20px; }
+th, td { border:1px solid #ccc; padding:8px; text-align:left; }
+th { background:#0077b6; color:white; }
+button { margin-right:5px; }
+form input, form select, form button { margin:5px 0; padding:5px; width:100%; box-sizing:border-box; }
+
+/* Filtros */
+.filtros input, .filtros select { margin:5px; padding:5px; width:auto; }
+</style>
+</head>
+<body>
+
+<nav>
+<ul>
+<li><a href="index.html">🏠 Home</a></li>
+<li><a href="propriedades.html">🏡 Propriedades</a></li>
+<li><a href="animais.html">🐄 Animais</a></li>
+<li><a href="nascimento.html">🐮 Nascimento</a></li>
+<li><a href="calendario.html">📅 Vacinas</a></li>
+<li><a href="historico.html">📜 Histórico</a></li>
+</ul>
+</nav>
+
+<section class="conteudo">
+<h2>Propriedades Cadastradas</h2>
+
+<!-- Filtros -->
+<div class="filtros">
+<input type="text" id="filtroNome" placeholder="Buscar por nome">
+<input type="text" id="filtroProprietario" placeholder="Proprietário">
+<input type="number" id="areaMin" placeholder="Área min (ha)">
+<input type="number" id="areaMax" placeholder="Área max (ha)">
+<button id="limparFiltros">Limpar Filtros</button>
+</div>
+
+<table id="tabelaPropriedades">
+<thead>
+<tr>
+<th>Nome</th>
+<th>Área (ha)</th>
+<th>Proprietário</th>
+<th>Local</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<h3>Adicionar / Editar Propriedade</h3>
+<form id="formPropriedades">
+<input type="hidden" id="indexEdit">
+<input type="text" id="nome" placeholder="Nome da propriedade" required>
+<input type="number" id="area" placeholder="Área (ha)" required>
+<input type="text" id="proprietario" placeholder="Proprietário" required>
+<input type="text" id="local" placeholder="Local" required>
+<button type="submit">Salvar</button>
+<button type="button" id="cancelEdit">Cancelar</button>
+</form>
+
+</section>
+
+<script>
+// Inicializar LocalStorage
+if(!localStorage.getItem('propriedades')) localStorage.setItem('propriedades', JSON.stringify([]));
+
+const tabela = document.querySelector('#tabelaPropriedades tbody');
+const form = document.getElementById('formPropriedades');
+const indexEdit = document.getElementById('indexEdit');
+
+// Filtros
+const filtroNome = document.getElementById('filtroNome');
+const filtroProprietario = document.getElementById('filtroProprietario');
+const areaMin = document.getElementById('areaMin');
+const areaMax = document.getElementById('areaMax');
+const limparFiltros = document.getElementById('limparFiltros');
+
+// Atualiza tabela aplicando filtros
+function atualizarTabela(){
+    const dados = JSON.parse(localStorage.getItem('propriedades'));
+    tabela.innerHTML = '';
+    dados.forEach((p,i)=>{
+        // Aplicar filtros
+        if(filtroNome.value && !p.nome.toLowerCase().includes(filtroNome.value.toLowerCase())) return;
+        if(filtroProprietario.value && !p.proprietario.toLowerCase().includes(filtroProprietario.value.toLowerCase())) return;
+        if(areaMin.value && p.area<parseFloat(areaMin.value)) return;
+        if(areaMax.value && p.area>parseFloat(areaMax.value)) return;
+
+        tabela.innerHTML += `<tr>
+            <td>${p.nome}</td>
+            <td>${p.area}</td>
+            <td>${p.proprietario}</td>
+            <td>${p.local}</td>
+            <td>
+                <button onclick="editar(${i})">Editar</button>
+                <button onclick="excluir(${i})">Excluir</button>
+            </td>
+        </tr>`;
+    });
+}
+
+// Salvar propriedade
+form.addEventListener('submit', e=>{
+    e.preventDefault();
+    const dados = JSON.parse(localStorage.getItem('propriedades'));
+    const novaProp = {
+        nome: document.getElementById('nome').value,
+        area: parseFloat(document.getElementById('area').value),
+        proprietario: document.getElementById('proprietario').value,
+        local: document.getElementById('local').value
+    };
+
+    if(indexEdit.value===''){
+        dados.push(novaProp);
+    } else {
+        dados[parseInt(indexEdit.value)] = novaProp;
+        indexEdit.value='';
+    }
+
+    localStorage.setItem('propriedades', JSON.stringify(dados));
+    form.reset();
+    atualizarTabela();
+});
+
+// Editar
+function editar(i){
+    const dados = JSON.parse(localStorage.getItem('propriedades'));
+    const p = dados[i];
+    document.getElementById('nome').value = p.nome;
+    document.getElementById('area').value = p.area;
+    document.getElementById('proprietario').value = p.proprietario;
+    document.getElementById('local').value = p.local;
+    indexEdit.value = i;
+}
+
+// Excluir
+function excluir(i){
+    const dados = JSON.parse(localStorage.getItem('propriedades'));
+    if(confirm('Deseja realmente excluir esta propriedade?')){
+        dados.splice(i,1);
+        localStorage.setItem('propriedades', JSON.stringify(dados));
+        atualizarTabela();
+    }
+}
+
+// Eventos filtros
+[filtroNome, filtroProprietario, areaMin, areaMax].forEach(el=>{
+    el.addEventListener('input', atualizarTabela);
+});
+
+limparFiltros.addEventListener('click', ()=>{
+    filtroNome.value=''; filtroProprietario.value='';
+    areaMin.value=''; areaMax.value='';
+    atualizarTabela();
+});
+
+document.getElementById('cancelEdit').addEventListener('click', ()=>{
+    form.reset();
+    indexEdit.value='';
+});
+
+window.addEventListener('DOMContentLoaded', ()=>{
+    atualizarTabela();
+});
+</script>
+
+</body>
+</html>

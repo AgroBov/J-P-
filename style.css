@@ -1,0 +1,149 @@
+/* ===== RESET ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f2f5f9;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* ===== NAVBAR ===== */
+nav {
+  background: #003366;
+  padding: 12px 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+nav ul li {
+  margin: 5px 15px;
+}
+
+nav ul li a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 15px;
+  transition: 0.3s;
+}
+
+nav ul li a:hover {
+  color: #ffd700;
+}
+
+/* ===== RESUMO (cards do topo) ===== */
+.resumo {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px auto;
+  gap: 15px;
+  flex-wrap: wrap;
+  max-width: 1200px;
+}
+
+.card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  flex: 1 1 200px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 16px;
+  color: #003366;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* ===== SEÇÕES ===== */
+.conteudo {
+  display: flex;
+  margin: 20px auto;
+  max-width: 1200px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.left, .right, .conteudo {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  flex: 1;
+  min-width: 300px;
+}
+
+h1, h2 {
+  margin-bottom: 15px;
+  color: #003366;
+}
+
+/* ===== TABELAS ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+table th {
+  background: #003366;
+  color: #fff;
+  padding: 10px;
+  text-align: center;
+  font-weight: 600;
+}
+
+table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+  font-size: 14px;
+}
+
+table tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+/* ===== LISTAS ===== */
+ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+ul li {
+  background: #f2f5f9;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  border-left: 5px solid #003366;
+  font-size: 14px;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+  .resumo {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .conteudo {
+    flex-direction: column;
+  }
+}

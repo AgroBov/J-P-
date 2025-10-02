@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Gestão Rural - Histórico</title>
+<style>
+body { font-family: Arial, sans-serif; margin:0; padding:0; }
+nav ul { list-style:none; display:flex; background:#0077b6; padding:10px; margin:0; }
+nav ul li { margin-right:10px; }
+nav ul li a { color:white; text-decoration:none; font-weight:bold; }
+nav ul li a:hover { text-decoration:underline; }
+.conteudo { max-width:1200px; margin:20px auto; }
+table { width:100%; border-collapse:collapse; margin-bottom:20px; }
+th, td { border:1px solid #ccc; padding:8px; text-align:left; }
+th { background:#0077b6; color:white; }
+button { margin-right:5px; }
+.filtros input, .filtros select { margin:5px; padding:5px; width:auto; }
+</style>
+</head>
+<body>
+
+<nav>
+<ul>
+<li><a href="index.html">🏠 Home</a></li>
+<li><a href="propriedades.html">🏡 Propriedades</a></li>
+<li><a href="animais.html">🐄 Animais</a></li>
+<li><a href="nascimento.html">🐮 Nascimento</a></li>
+<li><a href="calendario.html">📅 Vacinas</a></li>
+<li><a href="historico.html">📜 Histórico</a></li>
+</ul>
+</nav>
+
+<section class="conteudo">
+<h2>Histórico Consolidado</h2>
+
+<div class="filtros">
+<select id="filtroTipo">
+<option value="">Tipo</option>
+<option value="Animal">Animal</option>
+<option value="Nascimento">Nascimento</option>
+<option value="Vacina">Vacina</option>
+</select>
+
+<select id="filtroPropriedade">
+<option value="">Propriedade</option>
+</select>
+
+<input type="text" id="filtroBrinco" placeholder="Brinco do animal / bezerro">
+<input type="text" id="filtroVacina" placeholder="Nome da vacina">
+<select id="filtroStatus">
+<option value="">Status Vacina</option>
+<option value="Válido">Válido</option>
+<option value="Vencendo">Vencendo</option>
+</select>
+
+<input type="date" id="dataMin">
+<input type="date" id="dataMax">
+<input type="text" id="buscaGeral" placeholder="Busca geral">
+<button id="limparFiltros">Limpar Filtros</button>
+</div>
+
+<table id="tabelaHistorico">
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Brinco / Animal</th>
+<th>Nome Vacina</th>
+<th>Sexo</th>
+<th>Raça</th>
+<th>Data Nascimento</th>
+<th>Propriedade</th>
+<th>Tipo Aplicação</th>
+<th>Brinco Vacina</th>
+<th>Data Aplicação</th>
+<th>Data Vencimento</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+</section>
+
+<script>
+// Inicializar LocalStorage se necessário
+if(!localStorage.getItem('animais')) localStorage.setItem('animais', JSON.stringify([]));
+if(!localStorage.getItem('nascimentos')) localStorage.setItem('nascimentos', JSON.stringify([]));
+if(!localStorage.getItem('vacinas')) localStorage.setItem('vacinas', JSON.stringify([]));
+if(!localStorage.getItem('propriedades')) localStorage.setItem('propriedades', JSON.stringify([]));
+
+const tabela = document.querySelector('#tabelaHistorico tbody');
+
+const filtroTipo = document.getElementById('filtroTipo');
+const filtroPropriedade = document.getElementById('filtroPropriedade');
+const filtroBrinco = document.getElementById('filtroBrinco');
+const filtroVacina = document.getElementById('filtroVacina');
+const filtroStatus = document.getElementById('filtroStatus');
+const dataMin = document.getElementById('dataMin');
+const dataMax = document.getElementById('dataMax');
+const buscaGeral = document.getElementById('buscaGeral');
+const limparFiltros = document.getElementById('limparFiltros');
+
+// Atualiza select de propriedades
+function atualizarPropriedades(){
+    const props = JSON.parse(localStorage.getItem('propriedades'));
+    filtroPropriedade.innerHTML = '<option value="">Propriedade</option>';
+    props.forEach(p=>{
+        filtroPropriedade.innerHTML += `<option value="${p.nome}">${p.nome}</option>`;
+    });
+}
+
+// Atualiza tabela
+function atualizarTabela(){
+    const animais = JSON.parse(localStorage.getItem('animais'));
+    const nascimentos = JSON.parse(localStorage.getItem('nascimentos'));
+    const vacinas = JSON.parse(localStorage.getItem('vacinas'));
+
+    tabela.innerHTML = '';
+
+    const todosDados = [];
+
+    // Transformar animais em registros
+    animais.forEach(a=>{
+        todosDados.push({
+            tipo: 'Animal',
+            brinco: a.brinco,
+            nomeVacina: '',
+            sexo: a.sexo,
+            raca: a.raca,
+            dataNascimento: a.dataNascimento,
+            propriedade: a.propriedade,
+            tipoAplicacao: '',
+            brincoVacina: '',
+            dataAplicacao: '',
+            dataVencimento: '',
+            status: ''
+        });
+    });
+
+    // Transformar nascimentos em registros
+    nascimentos.forEach(n=>{
+        todosDados.push({
+            tipo: 'Nascimento',
+            brinco: n.brincoBezerro || '',
+            nomeVacina: '',
+            sexo: n.sexo,
+            raca: '',
+            dataNascimento: n.dataNascimento,
+            propriedade: n.propriedade,
+            tipoAplicacao: '',
+            brincoVacina: '',
+            dataAplicacao: '',
+            dataVencimento: '',
+            status: ''
+        });
+    });
+
+    // Transformar vacinas em registros
+    vacinas.forEach(v=>{
+        todosDados.push({
+            tipo: 'Vacina',
+            brinco: '',
+            nomeVacina: v.nome,
+            sexo: '',
+            raca: '',
+            dataNascimento: '',
+            propriedade: v.propriedade,
+            tipoAplicacao: v.tipo,
+            brincoVacina: v.brinco || '',
+            dataAplicacao: v.dataAplicacao,
+            dataVencimento: v.dataVencimento,
+            status: v.status
+        });
+    });
+
+    // Aplicar filtros
+    const filtrados = todosDados.filter(d=>{
+        if(filtroTipo.value && d.tipo !== filtroTipo.value) return false;
+        if(filtroPropriedade.value && d.propriedade !== filtroPropriedade.value) return false;
+        if(filtroBrinco.value && !d.brinco.toString().includes(filtroBrinco.value)) return false;
+        if(filtroVacina.value && !d.nomeVacina.toLowerCase().includes(filtroVacina.value.toLowerCase())) return false;
+        if(filtroStatus.value && d.status !== filtroStatus.value) return false;
+        if(dataMin.value){
+            if(d.tipo==='Animal' && d.dataNascimento && new Date(d.dataNascimento)<new Date(dataMin.value)) return false;
+            if(d.tipo==='Nascimento' && d.dataNascimento && new Date(d.dataNascimento)<new Date(dataMin.value)) return false;
+            if(d.tipo==='Vacina' && d.dataAplicacao && new Date(d.dataAplicacao)<new Date(dataMin.value)) return false;
+        }
+        if(dataMax.value){
+            if(d.tipo==='Animal' && d.dataNascimento && new Date(d.dataNascimento)>new Date(dataMax.value)) return false;
+            if(d.tipo==='Nascimento' && d.dataNascimento && new Date(d.dataNascimento)>new Date(dataMax.value)) return false;
+            if(d.tipo==='Vacina' && d.dataAplicacao && new Date(d.dataAplicacao)>new Date(dataMax.value)) return false;
+        }
+        if(buscaGeral.value){
+            const termo = buscaGeral.value.toLowerCase();
+            const campos = Object.values(d).join(' ').toLowerCase();
+            if(!campos.includes(termo)) return false;
+        }
+        return true;
+    });
+
+    // Renderizar tabela
+    filtrados.forEach(d=>{
+        tabela.innerHTML += `<tr>
+            <td>${d.tipo}</td>
+            <td>${d.brinco}</td>
+            <td>${d.nomeVacina}</td>
+            <td>${d.sexo}</td>
+            <td>${d.raca}</td>
+            <td>${d.dataNascimento}</td>
+            <td>${d.propriedade}</td>
+            <td>${d.tipoAplicacao}</td>
+            <td>${d.brincoVacina}</td>
+            <td>${d.dataAplicacao}</td>
+            <td>${d.dataVencimento}</td>
+            <td>${d.status}</td>
+        </tr>`;
+    });
+}
+
+// Eventos filtros
+[filtroTipo, filtroPropriedade, filtroBrinco, filtroVacina, filtroStatus, dataMin, dataMax, buscaGeral].forEach(el=>{
+    el.addEventListener('input', atualizarTabela);
+});
+
+limparFiltros.addEventListener('click', ()=>{
+    filtroTipo.value=''; filtroPropriedade.value=''; filtroBrinco.value='';
+    filtroVacina.value=''; filtroStatus.value=''; dataMin.value=''; dataMax.value='';
+    buscaGeral.value='';
+    atualizarTabela();
+});
+
+window.addEventListener('DOMContentLoaded', ()=>{
+    atualizarPropriedades();
+    atualizarTabela();
+});
+</script>
+
+</body>
+</html>

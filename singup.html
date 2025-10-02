@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0a2540;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      width: 300px;
+      text-align: center;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #0a2540;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #08335f;
+    }
+    .error {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    a {
+      display: block;
+      margin-top: 10px;
+      color: #0a2540;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input type="text" id="email" placeholder="E-mail ou usuário" required>
+      <input type="password" id="senha" placeholder="Senha" required><br>
+      <button type="submit">Entrar</button>
+      <div id="errorMsg" class="error"></div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById("loginForm");
+    const errorMsg = document.getElementById("errorMsg");
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const senha = document.getElementById("senha").value.trim();
+
+      // 🔹 Usuário master fixo
+      if (email === "ADMIN" && senha === "ADMIN") {
+        localStorage.setItem("usuarioLogado", JSON.stringify({ email: "ADMIN", master: true }));
+        window.location.href = "index.html";
+        return;
+      }
+
+      // 🔹 Usuários cadastrados normalmente
+      let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+      const usuarioValido = usuarios.find(u => u.email === email && u.senha === senha);
+
+      if (usuarioValido) {
+        localStorage.setItem("usuarioLogado", JSON.stringify(usuarioValido));
+        window.location.href = "index.html";
+      } else {
+        errorMsg.textContent = "E-mail ou senha incorretos!";
+      }
+    });
+  </script>
+</body>
+</html>

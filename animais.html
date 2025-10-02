@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Gestão Rural - Animais</title>
+<style>
+body { font-family: Arial, sans-serif; margin:0; padding:0; }
+nav ul { list-style:none; display:flex; background:#0077b6; padding:10px; margin:0; }
+nav ul li { margin-right:10px; }
+nav ul li a { color:white; text-decoration:none; font-weight:bold; }
+nav ul li a:hover { text-decoration:underline; }
+.conteudo { max-width:1200px; margin:20px auto; }
+table { width:100%; border-collapse:collapse; margin-bottom:20px; }
+th, td { border:1px solid #ccc; padding:8px; text-align:left; }
+th { background:#0077b6; color:white; }
+h1 { margin-bottom:20px; }
+button { padding:6px 12px; background:#0077b6; color:white; border:none; border-radius:4px; cursor:pointer; }
+button:hover { background:#023e8a; }
+
+/* Modal */
+.modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color: rgba(0,0,0,0.5); }
+.modal-content { background:#caf0f8; margin:10% auto; padding:20px; border-radius:8px; width:400px; position:relative; }
+.close { color:#333; position:absolute; top:10px; right:15px; font-size:24px; font-weight:bold; cursor:pointer; }
+form label { display:block; margin:10px 0 5px; }
+form input, form select { padding:5px; width:100%; }
+form button { margin-top:10px; width:48%; }
+form button:first-of-type { margin-right:4%; }
+
+/* Filtros */
+.filtros { margin-bottom:20px; }
+.filtros label { margin-right:5px; }
+.filtros select, .filtros input { margin-right:20px; padding:5px; }
+
+/* Resumo */
+.resumo { margin-bottom:20px; background:#e0f7fa; padding:10px; border-radius:6px; }
+
+/* Pop-up Pesagem */
+.modal-peso { display:none; position:fixed; z-index:1100; left:0; top:0; width:100%; height:100%; overflow:auto; background-color: rgba(0,0,0,0.5); }
+.modal-peso .modal-content { width:350px; }
+
+/* Modal Exclusão Rápida */
+#modalExclusao .modal-content { width:400px; }
+</style>
+</head>
+<body>
+
+<nav>
+<ul>
+<li><a href="index.html">🏠 Home</a></li>
+<li><a href="propriedades.html">🏡 Propriedades</a></li>
+<li><a href="animais.html">🐄 Animais</a></li>
+<li><a href="nascimento.html">🐮 Nascimento</a></li>
+<li><a href="calendario.html">📅 Vacinas</a></li>
+<li><a href="historico.html">📜 Histórico</a></li>
+</ul>
+</nav>
+
+<section class="conteudo">
+<h1>Animais</h1>
+
+<!-- Resumo -->
+<div class="resumo">
+<strong>Total de Animais:</strong> <span id="totalAnimais">0</span> | 
+<strong>Peso Total (kg):</strong> <span id="pesoTotal">0</span>
+</div>
+
+<!-- Filtros -->
+<div class="filtros">
+<label>Propriedade:</label>
+<select id="filtroPropriedade"><option value="">Todas</option></select>
+
+<label>Sexo:</label>
+<select id="filtroSexo"><option value="">Todos</option>
+<option value="Macho">Macho</option>
+<option value="Fêmea">Fêmea</option>
+</select>
+
+<label>Raça:</label>
+<select id="filtroRaca"><option value="">Todas</option>
+<option value="Nelore">Nelore</option>
+<option value="Cruzado">Cruzado</option>
+<option value="Gabiru">Gabiru</option>
+</select>
+
+<label>Peso (kg):</label>
+<input type="number" id="pesoMin" placeholder="Mínimo" style="width:70px;">
+<input type="number" id="pesoMax" placeholder="Máximo" style="width:70px;">
+
+<button id="abrirModal">Cadastrar Animal</button>
+<button onclick="abrirModalExclusao()" style="background:#e63946;">Excluir Animal</button>
+</div>
+
+<table id="tabelaAnimais">
+<thead>
+<tr>
+<th>Brinco</th>
+<th>Propriedade</th>
+<th>Data Nascimento</th>
+<th>Idade</th>
+<th>Sexo</th>
+<th>Raça</th>
+<th>Último Peso (kg)</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</section>
+
+<!-- Modal Cadastro -->
+<div id="modalAnimal" class="modal">
+<div class="modal-content">
+<span class="close">&times;</span>
+<h2>Cadastro de Animal</h2>
+<form id="formAnimal">
+<label>Brinco:</label>
+<input type="text" id="brinco" placeholder="Número do brinco" required>
+
+<label>Propriedade:</label>
+<select id="animalPropriedade" required></select>
+
+<label>Mãe (opcional):</label>
+<select id="animalMae"><option value="">Nenhuma</option></select>
+
+<label>Data de Nascimento:</label>
+<input type="date" id="dataNascimento" required>
+
+<label>Sexo:</label>
+<select id="sexo" required>
+<option value="">Selecione</option>
+<option value="Macho">Macho</option>
+<option value="Fêmea">Fêmea</option>
+</select>
+
+<label>Raça:</label>
+<select id="raca" required>
+<option value="">Selecione</option>
+<option value="Nelore">Nelore</option>
+<option value="Cruzado">Cruzado</option>
+<option value="Gabiru">Gabiru</option>
+</select>
+
+<label>Peso Inicial (kg):</label>
+<input type="number" id="peso" min="0" step="0.1" required>
+
+<button type="submit">Cadastrar</button>
+<button type="button" id="cancelarModal">Cancelar</button>
+</form>
+</div>
+</div>
+
+<!-- Modal Pesagem -->
+<div id="modalPeso" class="modal-peso">
+<div class="modal-content">
+<span class="close" id="closePeso">&times;</span>
+<h3>Histórico de Pesagem</h3>
+<table id="tabelaPesagem" style="width:100%; border-collapse:collapse;">
+<thead><tr><th>Data</th><th>Peso (kg)</th><th>Ações</th></tr></thead>
+<tbody></tbody>
+</table>
+<form id="formPeso">
+<label>Novo Peso (kg):</label>
+<input type="number" id="novoPeso" step="0.1" required>
+<label>Data:</label>
+<input type="date" id="dataPeso" required>
+<button type="submit">Adicionar</button>
+</form>
+</div>
+</div>
+
+<!-- Modal Exclusão Rápida -->
+<div id="modalExclusao" class="modal">
+  <div class="modal-content">
+    <span class="close" id="closeExclusao">&times;</span>
+    <h2>Excluir Animal</h2>
+    <form id="formExclusao">
+      <label>Selecione o Brinco:</label>
+      <select id="brincoExcluir" required></select>
+
+      <label>Motivo da Exclusão:</label>
+      <select id="motivoExclusao" required>
+        <option value="">Selecione</option>
+        <option value="Morreu">Morreu</option>
+        <option value="Vendido">Vendido</option>
+      </select>
+
+      <button type="submit">Excluir</button>
+      <button type="button" id="cancelarExclusao">Cancelar</button>
+    </form>
+  </div>
+</div>
+
+<script>
+// Inicializar LocalStorage
+if(!localStorage.getItem('propriedades')) localStorage.setItem('propriedades', JSON.stringify([]));
+if(!localStorage.getItem('animais')) localStorage.setItem('animais', JSON.stringify([]));
+if(!localStorage.getItem('pesagens')) localStorage.setItem('pesagens', JSON.stringify({}));
+
+// Calcular idade
+function calcularIdade(dataNasc){
+    const nascimento = new Date(dataNasc);
+    const hoje = new Date();
+    let anos = hoje.getFullYear() - nascimento.getFullYear();
+    let meses = hoje.getMonth() - nascimento.getMonth();
+    if(meses<0){ anos--; meses +=12; }
+    return `${anos} anos ${meses} meses`;
+}
+
+// Atualizar selects
+function atualizarSelects(){
+    const propriedades = JSON.parse(localStorage.getItem('propriedades'));
+    const selectProp = document.getElementById('animalPropriedade');
+    const filtroProp = document.getElementById('filtroPropriedade');
+    selectProp.innerHTML = '<option value="">Selecione</option>';
+    filtroProp.innerHTML = '<option value="">Todas</option>';
+    propriedades.forEach(p=>{
+        selectProp.innerHTML += `<option value="${p.nome}">${p.nome}</option>`;
+        filtroProp.innerHTML += `<option value="${p.nome}">${p.nome}</option>`;
+    });
+
+    const animais = JSON.parse(localStorage.getItem('animais'));
+    const selectMae = document.getElementById('animalMae');
+    selectMae.innerHTML = '<option value="">Nenhuma</option>';
+    animais.forEach(a => selectMae.innerHTML += `<option value="${a.brinco}">${a.brinco}</option>`);
+}
+
+// Modal Animal
+const modal = document.getElementById('modalAnimal');
+const abrirBtn = document.getElementById('abrirModal');
+const fecharBtn = document.querySelector('.close');
+const cancelarBtn = document.getElementById('cancelarModal');
+abrirBtn.onclick = ()=> modal.style.display='block';
+fecharBtn.onclick = ()=> modal.style.display='none';
+cancelarBtn.onclick = ()=> modal.style.display='none';
+window.onclick = e=>{if(e.target==modal) modal.style.display='none';};
+
+// Modal Pesagem
+const modalPeso = document.getElementById('modalPeso');
+const closePeso = document.getElementById('closePeso');
+let animalAtual = null;
+closePeso.onclick = ()=> modalPeso.style.display='none';
+window.onclick = e=>{if(e.target==modalPeso) modalPeso.style.display='none';};
+
+// Cadastrar animal
+document.getElementById('formAnimal').addEventListener('submit', function(e){
+    e.preventDefault();
+    const brinco = document.getElementById('brinco').value;
+    const propriedade = document.getElementById('animalPropriedade').value;
+    const mae = document.getElementById('animalMae').value;
+    const dataNascimento = document.getElementById('dataNascimento').value;
+    const sexo = document.getElementById('sexo').value;
+    const raca = document.getElementById('raca').value;
+    const peso = parseFloat(document.getElementById('peso').value);
+
+    const animais = JSON.parse(localStorage.getItem('animais'));
+    animais.push({brinco, propriedade, mae, dataNascimento, sexo, raca});
+    localStorage.setItem('animais', JSON.stringify(animais));
+
+    const pesagens = JSON.parse(localStorage.getItem('pesagens'));
+    pesagens[brinco] = [{data: dataNascimento, peso}];
+    localStorage.setItem('pesagens', JSON.stringify(pesagens));
+
+    filtrarTabela();
+    this.reset();
+    modal.style.display='none';
+    atualizarSelects();
+});
+
+// Atualizar tabela
+function filtrarTabela(){
+    const filtroProp = document.getElementById('filtroPropriedade').value;
+    const filtroSexo = document.getElementById('filtroSexo').value;
+    const filtroRaca = document.getElementById('filtroRaca').value;
+    const pesoMin = parseFloat(document.getElementById('pesoMin').value) || 0;
+    const pesoMax = parseFloat(document.getElementById('pesoMax').value) || 100000;
+    const tabela = document.querySelector('#tabelaAnimais tbody');
+    const animais = JSON.parse(localStorage.getItem('animais'));
+    const pesagens = JSON.parse(localStorage.getItem('pesagens'));
+    tabela.innerHTML = '';
+
+    let totalAnimais = 0;
+    let pesoTotal = 0;
+
+    animais.forEach((a,index)=>{
+        let historico = pesagens[a.brinco] || [];
+        if(historico.length === 0) historico = [{data:a.dataNascimento, peso:0}];
+        historico.sort((x,y)=> new Date(y.data)-new Date(x.data)); 
+        const ultimoPeso = historico[0].peso;
+
+        if((!filtroProp || a.propriedade===filtroProp) &&
+           (!filtroSexo || a.sexo===filtroSexo) &&
+           (!filtroRaca || a.raca===filtroRaca) &&
+           (ultimoPeso>=pesoMin && ultimoPeso<=pesoMax)){
+            tabela.innerHTML += `<tr>
+                <td>${a.brinco}</td>
+                <td>${a.propriedade}</td>
+                <td>${a.dataNascimento}</td>
+                <td>${calcularIdade(a.dataNascimento)}</td>
+                <td>${a.sexo}</td>
+                <td>${a.raca}</td>
+                <td>${ultimoPeso.toFixed(1)}</td>
+                <td>
+                    <button onclick="editarAnimal(${index})">Editar</button>
+                    <button onclick="excluirAnimal(${index})">Excluir</button>
+                    <button onclick="abrirPesagem('${a.brinco}')">Pesagens</button>
+                </td>
+            </tr>`;
+            totalAnimais++;
+            pesoTotal += ultimoPeso;
+        }
+    });
+
+    document.getElementById('totalAnimais').textContent = totalAnimais;
+    document.getElementById('pesoTotal').textContent = pesoTotal.toFixed(1);
+}
+
+// Abrir pop-up de pesagens
+function abrirPesagem(brinco){
+    animalAtual = brinco;
+    const pesagens = JSON.parse(localStorage.getItem('pesagens'))[brinco] || [];
+    const tbody = document.querySelector('#tabelaPesagem tbody');
+    tbody.innerHTML = '';
+    pesagens.sort((x,y)=> new Date(y.data)-new Date(x.data));
+    pesagens.forEach((p,i)=> tbody.innerHTML += `<tr>
+        <td>${p.data}</td>
+        <td>${p.peso.toFixed(1)}</td>
+        <td><button onclick="editarPeso(${i})">Editar</button></td>
+    </tr>`);
+    modalPeso.style.display='block';
+}
+
+// Adicionar nova pesagem
+document.getElementById('formPeso').addEventListener('submit', function(e){
+    e.preventDefault();
+    const novoPeso = parseFloat(document.getElementById('novoPeso').value);
+    const data = document.getElementById('dataPeso').value;
+    const pesagens = JSON.parse(localStorage.getItem('pesagens'));
+    if(!pesagens[animalAtual]) pesagens[animalAtual] = [];
+    pesagens[animalAtual].push({data, peso: novoPeso});
+    localStorage.setItem('pesagens', JSON.stringify(pesagens));
+    abrirPesagem(animalAtual);
+    filtrarTabela();
+    this.reset();
+});
+
+// Editar pesagem
+function editarPeso(index){
+    const pesagens = JSON.parse(localStorage.getItem('pesagens'));
+    const p = pesagens[animalAtual][index];
+    const novoPeso = prompt("Editar peso (kg):", p.peso);
+    const novaData = prompt("Editar data (YYYY-MM-DD):", p.data);
+    if(novoPeso !== null && novaData !== null){
+        pesagens[animalAtual][index] = {data:novaData, peso:parseFloat(novoPeso)};
+        localStorage.setItem('pesagens', JSON.stringify(pesagens));
+        abrirPesagem(animalAtual);
+        filtrarTabela();
+    }
+}
+
+// Excluir animal
+function excluirAnimal(index){
+    if(confirm('Deseja realmente excluir este animal?')){
+        const animais = JSON.parse(localStorage.getItem('animais'));
+        const brinco = animais[index].brinco;
+        animais.splice(index,1);
+        localStorage.setItem('animais', JSON.stringify(animais));
+
+        const pesagens = JSON.parse(localStorage.getItem('pesagens'));
+        delete pesagens[brinco];
+        localStorage.setItem('pesagens', JSON.stringify(pesagens));
+
+        filtrarTabela();
+        atualizarSelects();
+    }
+}
+
+// Editar animal
+function editarAnimal(index){
+    const animais = JSON.parse(localStorage.getItem('animais'));
+    const a = animais[index];
+    document.getElementById('brinco').value = a.brinco;
+    document.getElementById('animalPropriedade').value = a.propriedade;
+    document.getElementById('animalMae').value = a.mae;
+    document.getElementById('dataNascimento').value = a.dataNascimento;
+    document.getElementById('sexo').value = a.sexo;
+    document.getElementById('raca').value = a.raca;
+
+    const pesagens = JSON.parse(localStorage.getItem('pesagens'))[a.brinco];
+    if(pesagens && pesagens.length>0){
+        const ultimo = pesagens.sort((x,y)=> new Date(y.data)-new Date(x.data))[0];
+        document.getElementById('peso').value = ultimo.peso;
+    } else document.getElementById('peso').value = 0;
+
+    animais.splice(index,1);
+    localStorage.setItem('animais', JSON.stringify(animais));
+    filtrarTabela();
+}
+
+// Filtros
+document.getElementById('filtroPropriedade').addEventListener('change', filtrarTabela);
+document.getElementById('filtroSexo').addEventListener('change', filtrarTabela);
+document.getElementById('filtroRaca').addEventListener('change', filtrarTabela);
+document.getElementById('pesoMin').addEventListener('input', filtrarTabela);
+document.getElementById('pesoMax').addEventListener('input', filtrarTabela);
+
+// Modal Exclusão Rápida
+function abrirModalExclusao(){
+    const modalEx = document.getElementById('modalExclusao');
+    const selectBrinco = document.getElementById('brincoExcluir');
+    const animais = JSON.parse(localStorage.getItem('animais'));
+    selectBrinco.innerHTML = '<option value="">Selecione</option>';
+    animais.forEach(a => selectBrinco.innerHTML += `<option value="${a.brinco}">${a.brinco} - ${a.propriedade}</option>`);
+    modalEx.style.display='block';
+}
+
+document.getElementById('closeExclusao').onclick = ()=> document.getElementById('modalExclusao').style.display='none';
+document.getElementById('cancelarExclusao').onclick = ()=> document.getElementById('modalExclusao').style.display='none';
+window.onclick = e=> { 
+    if(e.target==document.getElementById('modalExclusao')) document.getElementById('modalExclusao').style.display='none';
+};
+
+document.getElementById('formExclusao').addEventListener('submit', function(e){
+    e.preventDefault();
+    const brinco = document.getElementById('brincoExcluir').value;
+    const motivo = document.getElementById('motivoExclusao').value;
+    if(!brinco || !motivo) return alert('Selecione o brinco e o motivo');
+
+    const animais = JSON.parse(localStorage.getItem('animais'));
+    const index = animais.findIndex(a=>a.brinco===brinco);
+    if(index !== -1){
+        animais.splice(index,1);
+        localStorage.setItem('animais', JSON.stringify(animais));
+
+        const pesagens = JSON.parse(localStorage.getItem('pesagens'));
+        delete pesagens[brinco];
+        localStorage.setItem('pesagens', JSON.stringify(pesagens));
+
+        alert(`Animal excluído: ${motivo}`);
+        filtrarTabela();
+        atualizarSelects();
+        this.reset();
+        document.getElementById('modalExclusao').style.display='none';
+    }
+});
+
+// Inicialização
+window.addEventListener('DOMContentLoaded', ()=>{
+    atualizarSelects();
+    filtrarTabela();
+});
+</script>
+
+</body>
+</html>
