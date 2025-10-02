@@ -1,307 +1,109 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Gestão Rural - Home</title>
-<style>
-body { font-family: Arial, sans-serif; margin:0; padding:0; }
-nav ul { list-style:none; display:flex; background:#0077b6; padding:10px; margin:0; }
-nav ul li { margin-right:10px; }
-nav ul li a { color:white; text-decoration:none; font-weight:bold; }
-nav ul li a:hover { text-decoration:underline; }
-.conteudo { max-width:1200px; margin:20px auto; }
-.resumo { display:flex; gap:20px; margin-bottom:30px; flex-wrap:wrap; }
-.resumo div { flex:1; padding:20px; background:#caf0f8; border-radius:8px; text-align:center; font-size:1.2em; }
-table { width:100%; border-collapse:collapse; margin-bottom:20px; }
-th, td { border:1px solid #ccc; padding:8px; text-align:left; }
-th { background:#0077b6; color:white; }
-h2 { margin-top:40px; }
-.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0;
-  width: 100%; height: 100%; background: rgba(0,0,0,0.6);
-  justify-content: center; align-items: center; }
-.modal-content { background: #fff; padding: 20px; border-radius: 10px; width: 400px;
-  max-height: 80vh; overflow-y: auto; }
-.modal-content h2 { margin-top:0; }
-.close { float: right; font-size: 20px; cursor: pointer; color: red; }
-#btnSair {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  padding: 8px 15px;
-  background: #d62828;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-#btnSair:hover {
-  background: #a4161a;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0a2540;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      width: 300px;
+      text-align: center;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #0a2540;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #08335f;
+    }
+    .error {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    a {
+      display: block;
+      margin-top: 10px;
+      color: #0a2540;
+      text-decoration: none;
+    }
+  </style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d6efd">
 </head>
 <body>
-
-<nav>
-<ul>
-<li><a href="index.html">🏠 Home</a></li>
-<li><a href="propriedades.html">🏡 Propriedades</a></li>
-<li><a href="animais.html">🐄 Animais</a></li>
-<li><a href="nascimento.html">🐮 Nascimento</a></li>
-<li><a href="calendario.html">📅 Vacinas</a></li>
-<li><a href="historico.html">📜 Histórico</a></li>
-<li><a href="#" id="abrirUsuarios">👤 Usuários</a></li>
-<li><a href="singup.html">🚪 Sair</a></li>
-</ul>
-</nav>
-
-<section class="conteudo">
-<h1>Bem-vindo à Gestão Rural</h1>
-
-<!-- Resumo -->
-<div class="resumo">
-<div id="totalPropriedades">Propriedades: 0</div>
-<div id="totalAnimais">Animais: 0</div>
-<div id="nascimentosMes">Nascimentos do mês: 0</div>
-<div id="vacinasVencendo">Vacinas válidas: 0</div>
-<div id="vacinasVencidas">Vacinas vencidas: 0</div>
-</div>
-
-<!-- Propriedades -->
-<h2>Propriedades</h2>
-<table id="tabelaPropriedades">
-<thead>
-<tr>
-<th>Nome</th>
-<th>Área</th>
-<th>Proprietário</th>
-<th>Local</th>
-<th>Total de Animais</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-
-<!-- Nascimentos recentes -->
-<h2>Nascimentos Recentes</h2>
-<table id="tabelaNascimentos">
-<thead>
-<tr>
-<th>Brinco do Bezerro</th>
-<th>Brinco da Mãe</th>
-<th>Data</th>
-<th>Sexo</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-
-<!-- Vacinas a vencer -->
-<h2>Vacinas Válidas</h2>
-<table id="tabelaVacinasVencer">
-<thead>
-<tr>
-<th>Vacina</th>
-<th>Propriedade</th>
-<th>Tipo</th>
-<th>Brinco</th>
-<th>Data Aplicação</th>
-<th>Data Vencimento</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-
-<!-- Vacinas vencidas -->
-<h2>Vacinas Vencidas</h2>
-<table id="tabelaVacinasVencidas">
-<thead>
-<tr>
-<th>Vacina</th>
-<th>Propriedade</th>
-<th>Tipo</th>
-<th>Brinco</th>
-<th>Data Aplicação</th>
-<th>Data Vencimento</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-
-</section>
-<!-- ============= POPUP ============= -->
-<div id="usuariosModal" class="modal">
-  <div class="modal-content">
-    <span class="close" id="fecharModal">&times;</span>
-    <h2>Gerenciar Usuários</h2>
-    <form id="formUsuario">
-      <input type="email" id="emailUsuario" placeholder="E-mail" required>
-      <input type="password" id="senhaUsuario" placeholder="Senha" required>
-      <button type="submit">Cadastrar</button>
+  <div class="container">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input type="text" id="email" placeholder="E-mail ou usuário" required>
+      <input type="password" id="senha" placeholder="Senha" required><br>
+      <button type="submit">Entrar</button>
+      <div id="errorMsg" class="error"></div>
     </form>
-    <h3>Usuários Cadastrados</h3>
-    <table id="usuariosLista" border="1" width="100%">
-      <thead>
-        <tr><th>Email</th><th>Ação</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
   </div>
-</div>
 
-<script>
-// Inicializar LocalStorage se não existir
-if(!localStorage.getItem('propriedades')) localStorage.setItem('propriedades', JSON.stringify([]));
-if(!localStorage.getItem('animais')) localStorage.setItem('animais', JSON.stringify([]));
-if(!localStorage.getItem('nascimentos')) localStorage.setItem('nascimentos', JSON.stringify([]));
-if(!localStorage.getItem('vacinas')) localStorage.setItem('vacinas', JSON.stringify([]));
+  <script>
+    const form = document.getElementById("loginForm");
+    const errorMsg = document.getElementById("errorMsg");
 
-// Função para formatar data: DD Mês AAAA
-function formatarData(dataStr){
-    const data = new Date(dataStr);
-    const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-                   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-    const dia = data.getDate();
-    const mes = meses[data.getMonth()];
-    const ano = data.getFullYear();
-    return `${dia} ${mes} ${ano}`;
-}
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
 
-function atualizarResumo(){
-    const propriedades = JSON.parse(localStorage.getItem('propriedades'));
-    const animais = JSON.parse(localStorage.getItem('animais'));
-    const nascimentos = JSON.parse(localStorage.getItem('nascimentos'));
-    const vacinas = JSON.parse(localStorage.getItem('vacinas'));
+      const email = document.getElementById("email").value.trim();
+      const senha = document.getElementById("senha").value.trim();
 
-    document.getElementById('totalPropriedades').innerText = `Propriedades: ${propriedades.length}`;
-    document.getElementById('totalAnimais').innerText = `Animais: ${animais.length}`;
+      // 🔹 Usuário master fixo
+      if (email === "ADMIN" && senha === "ADMIN") {
+        localStorage.setItem("usuarioLogado", JSON.stringify({ email: "ADMIN", master: true }));
+        window.location.href = "index.html";
+        return;
+      }
 
-    // Nascimentos do mês
-    const mesAtual = new Date().getMonth();
-    const nascimentosMes = nascimentos.filter(n=> new Date(n.dataNascimento).getMonth() === mesAtual);
-    document.getElementById('nascimentosMes').innerText = `Nascimentos do mês: ${nascimentosMes.length}`;
+      // 🔹 Usuários cadastrados normalmente
+      let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+      const usuarioValido = usuarios.find(u => u.email === email && u.senha === senha);
 
-    // Vacinas válidas e vencidas
-    const hoje = new Date();
-    const vacinasVencendo = vacinas.filter(v=> new Date(v.dataVencimento) >= hoje);
-    const vacinasVencidas = vacinas.filter(v=> new Date(v.dataVencimento) < hoje);
-
-    document.getElementById('vacinasVencendo').innerText = `Vacinas válidas: ${vacinasVencendo.length}`;
-    document.getElementById('vacinasVencidas').innerText = `Vacinas vencidas: ${vacinasVencidas.length}`;
-}
-
-// Atualiza tabela de propriedades
-function atualizarPropriedades(){
-    const tabela = document.querySelector('#tabelaPropriedades tbody');
-    const propriedades = JSON.parse(localStorage.getItem('propriedades'));
-    const animais = JSON.parse(localStorage.getItem('animais'));
-    tabela.innerHTML='';
-    propriedades.forEach(p=>{
-        // Contar animais nessa propriedade
-        const totalAnimais = animais.filter(a => a.propriedade === p.nome).length;
-        tabela.innerHTML += `<tr>
-            <td>${p.nome}</td>
-            <td>${p.area}</td>
-            <td>${p.proprietario}</td>
-            <td>${p.local}</td>
-            <td>${totalAnimais}</td>
-        </tr>`;
+      if (usuarioValido) {
+        localStorage.setItem("usuarioLogado", JSON.stringify(usuarioValido));
+        window.location.href = "index.html";
+      } else {
+        errorMsg.textContent = "E-mail ou senha incorretos!";
+      }
     });
-}
-
-// Atualiza tabela de nascimentos recentes (3 mais recentes)
-function atualizarNascimentos(){
-    const tabela = document.querySelector('#tabelaNascimentos tbody');
-    const nascimentos = JSON.parse(localStorage.getItem('nascimentos'));
-    const recentes = nascimentos.sort((a,b)=> new Date(b.dataNascimento) - new Date(a.dataNascimento)).slice(0,3);
-    tabela.innerHTML='';
-    recentes.forEach(n=>{
-        tabela.innerHTML += `<tr>
-            <td>${n.brincoBezerro || ''}</td>
-            <td>${n.brincoMae}</td>
-            <td>${formatarData(n.dataNascimento)}</td>
-            <td>${n.sexo}</td>
-        </tr>`;
-    });
-}
-
-// Atualiza tabela de vacinas
-function atualizarVacinas(){
-    const tabelaVencer = document.querySelector('#tabelaVacinasVencer tbody');
-    const tabelaVencidas = document.querySelector('#tabelaVacinasVencidas tbody');
-    const vacinas = JSON.parse(localStorage.getItem('vacinas'));
-    const hoje = new Date();
-    tabelaVencer.innerHTML='';
-    tabelaVencidas.innerHTML='';
-
-    vacinas.forEach(v=>{
-        const venc = new Date(v.dataVencimento);
-        const linha = `<tr>
-            <td>${v.nome}</td>
-            <td>${v.propriedade}</td>
-            <td>${v.tipo}</td>
-            <td>${v.brinco || ''}</td>
-            <td>${formatarData(v.dataAplicacao)}</td>
-            <td>${formatarData(v.dataVencimento)}</td>
-        </tr>`;
-        if(venc >= hoje){
-            tabelaVencer.innerHTML += linha;
-        } else {
-            tabelaVencidas.innerHTML += linha;
-        }
-    });
-}
-
-// Atualiza tudo
-function atualizarHome(){
-    atualizarResumo();
-    atualizarPropriedades();
-    atualizarNascimentos();
-    atualizarVacinas();
-}
-
-// Inicialização
-window.addEventListener('DOMContentLoaded', atualizarHome);
-
-if(!localStorage.getItem('usuarios')) localStorage.setItem('usuarios', JSON.stringify([]));
-
-function carregarUsuarios(){
-  const usuarios = JSON.parse(localStorage.getItem('usuarios'));
-  const tbody = document.querySelector('#usuariosLista tbody');
-  tbody.innerHTML = '';
-  usuarios.forEach((u, index)=>{
-    tbody.innerHTML += `<tr>
-      <td>${u.email}</td>
-      <td><button onclick="removerUsuario(${index})">Remover</button></td>
-    </tr>`;
-  });
-}
-function adicionarUsuario(email, senha){
-  let usuarios = JSON.parse(localStorage.getItem('usuarios'));
-  usuarios.push({ email, senha });
-  localStorage.setItem('usuarios', JSON.stringify(usuarios));
-  carregarUsuarios();
-}
-function removerUsuario(index){
-  let usuarios = JSON.parse(localStorage.getItem('usuarios'));
-  usuarios.splice(index,1);
-  localStorage.setItem('usuarios', JSON.stringify(usuarios));
-  carregarUsuarios();
-}
-
-// Eventos popup
-const modal = document.getElementById("usuariosModal");
-document.getElementById("abrirUsuarios").onclick = ()=>{ modal.style.display="flex"; carregarUsuarios(); };
-document.getElementById("fecharModal").onclick = ()=> modal.style.display="none";
-window.onclick = (e)=>{ if(e.target==modal){ modal.style.display="none"; } }
-
-document.getElementById("formUsuario").addEventListener("submit", function(e){
-  e.preventDefault();
-  const email = document.getElementById("emailUsuario").value;
-  const senha = document.getElementById("senhaUsuario").value;
-  adicionarUsuario(email, senha);
-  this.reset();
-});
-</script>
-
+      if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js")
+      .then(() => console.log("Service Worker registrado com sucesso"))
+      .catch((err) => console.error("Erro ao registrar SW:", err));
+  }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log('Service Worker registrado com sucesso'))
+      .catch((err) => console.error('Erro ao registrar SW:', err));
+  }
+  </script>
 </body>
 </html>
